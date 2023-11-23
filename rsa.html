@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>RSA Encryption/Decryption</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <h1>RSA Algorithm</h1>
+    <h2>Implemented Using HTML & JavaScript</h2>
+    <hr>
+    <table>
+        <tr>
+            <td>Enter First Prime Number (p):</td>
+            <td><input type="number" value="29" id="p"></td>
+        </tr>
+        <tr>
+            <td>Enter Second Prime Number (q):</td>
+            <td><input type="number" value="19" id="q"></td>
+        </tr>
+        <tr>
+            <td>Enter the Message (plaintext):</td>
+            <td><input type="text" value="13" id="plaintext"></td>
+        </tr>
+        <tr>
+            <td>Public Key (n, e):</td>
+            <td>
+                <p id="publickey"></p>
+            </td>
+        </tr>
+        <tr>
+            <td>Private Key (d):</td>
+            <td>
+                <p id="privatekey"></p>
+            </td>
+        </tr>
+        <tr>
+            <td>Cipher Text:</td>
+            <td>
+                <p id="ciphertext"></p>
+            </td>
+        </tr>
+        <tr>
+            <td>Decrypted Message:</td>
+            <td>
+                <p id="decryptedMessage"></p>
+            </td>
+        </tr>
+        <tr>
+            <!-- <td><button onclick="generateKeyPair();">Generate Key Pair</button></td> -->
+            <td><button onclick="encryptMessage();">Apply RSA</button></td>
+        </tr>
+    </table>
+
+    <script type="text/javascript">
+        let publicKey, privateKey;
+
+        function generateKeyPair() {
+            const p = parseInt(document.getElementById('p').value);
+            const q = parseInt(document.getElementById('q').value);
+            const n = p * q;
+            const t = (p - 1) * (q - 1);
+            
+            let e = 2;
+            while (e < t) {
+                if (gcd(e, t) === 1) {
+                    break;
+                }
+                e++;
+            }
+
+            let d = modInverse(e, t);
+
+            publicKey = { n, e };
+            privateKey = { d };
+
+            document.getElementById('publickey').innerHTML = `(${n}, ${e})`;
+            document.getElementById('privatekey').innerHTML = d;
+        }
+
+        function encryptMessage() {
+            generateKeyPair();
+
+            const plaintext = document.getElementById('plaintext').value;
+            const e = publicKey.e;
+            const n = publicKey.n;
+
+            var ciphertext = '';
+            for (let i = 0; i < plaintext.length; i++) {
+                const charCode = plaintext.charCodeAt(i);
+                const encryptedChar = modPow(charCode, e, n);
+                ciphertext += encryptedChar + ' ';
+            }
+            decryptMessage(ciphertext)
+
+            let c = (Math.pow(plaintext,e)) % n;
+
+            document.getElementById('ciphertext').innerHTML = c;
+        }
+
+        function decryptMessage(c) {
+            const ciphertext = c.split(' ');
+            const d = privateKey.d;
+            const n = publicKey.n;
+
+            let decryptedMessage = '';
+            for (let i = 0; i < ciphertext.length; i++) {
+                const charCode = modPow(parseInt(ciphertext[i]), d, n);
+                decryptedMessage += String.fromCharCode(charCode);
+            }
+            document.getElementById('decryptedMessage').innerHTML = decryptedMessage;
+        }
+
+        function gcd(a, b) {
+            if (b === 0) {
+                return a;
+            }
+            return gcd(b, a % b);
+        }
+
+        function modInverse(a, m) {
+            for (let x = 1; x < m; x++) {
+                if ((a * x) % m === 1) {
+                    return x;
+                }
+            }
+            return 1;
+            
+        }
+
+        function modPow(base, exponent, modulus) {
+            if (modulus === 1) return 0;
+            let result = 1;
+            base = base % modulus;
+            while (exponent > 0) {
+                if (exponent % 2 === 1) {
+                    result = (result * base) % modulus;
+                }
+                exponent = Math.floor(exponent / 2);
+                base = (base * base) % modulus;
+            }
+            return result;
+        }
+    </script>
+</body>
+
+</html>
